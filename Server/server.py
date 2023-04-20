@@ -80,7 +80,7 @@ def user_connect(client_f, addr_f):
             client_f.sendall(response.encode())
 
         # JOIN command
-        if "JOIN" in data:
+        elif request[0].upper() == "JOIN":
             request = data.split('|')
             channel = request[1]  # Getting channel name
 
@@ -105,7 +105,7 @@ def user_connect(client_f, addr_f):
                         client_f.sendall(f'MESSAGE SENT\r\n\r\n'.encode())
 
                     # GET command
-                    if "GET" in data:
+                    elif request[0].upper() == "GET":
                         # Getting amount of messages to send
                         mess_amount = 10 if len(channels[channel]) > 10 else len(channels[channel])
 
