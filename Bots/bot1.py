@@ -17,6 +17,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     # List request
     request = "LIST\r\n\r\n"
+    # print(request)
     s.sendall(request.encode())
 
     data = read_data(s)
@@ -35,6 +36,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     # List request
     request = "LIST\r\n\r\n"
+    # print(request)
     s.sendall(request.encode())
 
     data = read_data(s)
@@ -59,7 +61,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
         data = read_data(s)
         data = data.decode()
-
         print(f'Response from server: {data}')
 
         request = "GETMESS\r\n\r\n"
