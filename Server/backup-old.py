@@ -1,7 +1,7 @@
 import socket
 import threading
 from datetime import datetime
-from config import connection, read_data, generate_id
+# from config import connection, read_data, generate_id
 
 users = {}
 
@@ -33,11 +33,11 @@ def user_connect(client_f, addr_f):
     while True:
         data = read_data(client_f)
         data = data.decode()
-        data = data.strip('\r\n\r\n')
+
         response = ''
         # HELLO command
         if "HELLO" in data:
-            request = data.split('|')
+            request = data.split('\r\n')
             # Creating new user
             if request[1]:
                 user = Users(request[1])
@@ -77,7 +77,7 @@ def user_connect(client_f, addr_f):
 
         # CREATE command
         if "CREATE" in data:
-            request = data.split('|')
+            request = data.split('\r\n')
             channel = request[1]
             # Checking if channel already exists
             if channel in channels:
@@ -92,7 +92,7 @@ def user_connect(client_f, addr_f):
 
         # JOIN command
         if "JOIN" in data:
-            request = data.split('|')
+            request = data.split('\r\n')
             channel = request[1]  # Getting channel name
 
             if channel in channels:  # Checking if channel exists
@@ -103,10 +103,9 @@ def user_connect(client_f, addr_f):
                     # MESS command
                     data = read_data(client_f)
                     data = data.decode()
-                    data = data.strip('\r\n\r\n')
 
                     if "MESS" in data:
-                        request = data.split('|')
+                        request = data.split('\r\n')
                         # Getting current date and time
                         now = datetime.now()  # current date and time
                         short_date = now.strftime("%B")
@@ -120,7 +119,7 @@ def user_connect(client_f, addr_f):
                         client_f.sendall(response.encode())
 
                     # GET command
-                    if "GET" in data:
+                    if "GETMESS" in data:
                         # Getting amount of messages to send
                         mess_amount = len(channels[channel])
                         if mess_amount > 10:

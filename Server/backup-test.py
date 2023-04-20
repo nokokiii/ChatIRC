@@ -1,14 +1,14 @@
 import socket
 import threading
 from datetime import datetime
-from config import connection, read_data, generate_id
+# from config import connection, read_data, generate_id
 
 users = {}
 
 #  Dictionary with channels and messages
 channels = {
     '#sports': [],
-    '#movies-and-TV-series': [],
+    '#movies': [],
     '#games': []
 }
 
@@ -37,7 +37,8 @@ def user_connect(client_f, addr_f):
         response = ''
         # HELLO command
         if "HELLO" in data:
-            request = data.split('\r\n')
+            request = data.strip('\r\n\r\n')
+            request = data.split('|')
             # Creating new user
             if request[1]:
                 user = Users(request[1])
@@ -55,7 +56,8 @@ def user_connect(client_f, addr_f):
                 "LIST - to get list of channels\r\n" \
                 "CREATE - to create new channel\r\n" \
                 "JOIN - to join channel\r\n" \
-                "QUIT - to disconnect from the server\r\n\r\n"
+                "GETMESS - to get messages from channel\r\n" \
+                "QUIT - to disconnect from the serverr\r\n\r\n"
             client_f.sendall(response.encode())
 
         # QUIT command
@@ -67,7 +69,7 @@ def user_connect(client_f, addr_f):
 
         # LIST command
         if "LIST" in data:
-            response = 'THE LIST OF CHANNELS\r\n'
+            response = 'THE LIST OF CHANNELS:\r\n'
             # Sending list of channels
             for channel in channels:
                 response += f' {channel}\r\n'
@@ -77,7 +79,8 @@ def user_connect(client_f, addr_f):
 
         # CREATE command
         if "CREATE" in data:
-            request = data.split('\r\n')
+            request = data.strip('\r\n\r\n')
+            request = data.split('|')
             channel = request[1]
             # Checking if channel already exists
             if channel in channels:
@@ -92,7 +95,8 @@ def user_connect(client_f, addr_f):
 
         # JOIN command
         if "JOIN" in data:
-            request = data.split('\r\n')
+            request = data.strip('\r\n\r\n')
+            request = data.split('|')
             channel = request[1]  # Getting channel name
 
             if channel in channels:  # Checking if channel exists
@@ -105,7 +109,8 @@ def user_connect(client_f, addr_f):
                     data = data.decode()
 
                     if "MESS" in data:
-                        request = data.split('\r\n')
+                        request = data.strip('\r\n\r\n')
+                        request = data.split('|')
                         # Getting current date and time
                         now = datetime.now()  # current date and time
                         short_date = now.strftime("%B")
@@ -119,7 +124,7 @@ def user_connect(client_f, addr_f):
                         client_f.sendall(response.encode())
 
                     # GET command
-                    if "GET" in data:
+                    if "GETMESS" in data:
                         # Getting amount of messages to send
                         mess_amount = len(channels[channel])
                         if mess_amount > 10:
