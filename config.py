@@ -1,5 +1,5 @@
 ip = 'localhost'
-port = 56890
+port = 56990
 connection = (ip, port)
 commands = ['HELLO', 'JOIN', 'LIST', 'MESS', 'QUIT', 'HELP']
 
