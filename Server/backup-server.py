@@ -1,14 +1,14 @@
 import socket
 import threading
 from datetime import datetime
-# from config import connection, read_data, generate_id
+from config import connection, read_data, generate_id
 
 users = {}
 
 #  Dictionary with channels and messages
 channels = {
     '#sports': [],
-    '#movies': [],
+    '#movies-and-TV-series': [],
     '#games': []
 }
 
@@ -17,6 +17,7 @@ channels = {
 class Channels:
     def __init__(self, name):
         self.name = name if name.startswith('#') else f'#{name}'
+        self.chat = []
 
     def create(self):
         channels[self.name] = []
@@ -31,20 +32,14 @@ class Users:
 def user_connect(client_f, addr_f):
     print(f'Connected with {addr_f[0]}')
     while True:
-        data = read_data(client_f)
-        data = data.decode()
-
+        data = read_data(client_f).decode().strip('\r\n\r\n')
         response = ''
+
         # HELLO command
         if "HELLO" in data:
-            request = data.strip('\r\n\r\n')
             request = data.split('|')
-            # Creating new user
-            if request[1]:
-                user = Users(request[1])
-            else:
-                user = Users()
 
+            user = Users(request[1]) if request[1] else Users()
             users[user.id] = user
             response = f'HELLO {user.name}\r\n\r\n'
             client_f.sendall(response.encode())
@@ -56,30 +51,26 @@ def user_connect(client_f, addr_f):
                 "LIST - to get list of channels\r\n" \
                 "CREATE - to create new channel\r\n" \
                 "JOIN - to join channel\r\n" \
-                "GETMESS - to get messages from channel\r\n" \
-                "QUIT - to disconnect from the serverr\r\n\r\n"
+                "QUIT - to disconnect from the server\r\n\r\n"
             client_f.sendall(response.encode())
 
         # QUIT command
         if "QUIT" in data:
-            response = f'GOODBYE {user.name}\r\n\r\n'
-            client_f.sendall(response.encode())
+            client_f.sendall(f'GOODBYE {user.name}\r\n\r\n'.encode())
             client_f.close()
             break
 
         # LIST command
         if "LIST" in data:
-            response = 'THE LIST OF CHANNELS:\r\n'
+            response = 'THE LIST OF CHANNELS\r\n'
             # Sending list of channels
-            for channel in channels:
-                response += f' {channel}\r\n'
+            response = ''.join([f' {channel}\r\n' for channel in channels])
             response += '\r\n'
 
             client_f.sendall(response.encode())
 
         # CREATE command
         if "CREATE" in data:
-            request = data.strip('\r\n\r\n')
             request = data.split('|')
             channel = request[1]
             # Checking if channel already exists
@@ -95,7 +86,6 @@ def user_connect(client_f, addr_f):
 
         # JOIN command
         if "JOIN" in data:
-            request = data.strip('\r\n\r\n')
             request = data.split('|')
             channel = request[1]  # Getting channel name
 
@@ -104,49 +94,37 @@ def user_connect(client_f, addr_f):
                 client_f.sendall(response.encode())
 
                 while True:
-                    # MESS command
-                    data = read_data(client_f)
-                    data = data.decode()
+                    data = read_data(client_f).decode().strip('\r\n\r\n')
 
+                    # MESS command
                     if "MESS" in data:
-                        request = data.strip('\r\n\r\n')
                         request = data.split('|')
                         # Getting current date and time
                         now = datetime.now()  # current date and time
                         short_date = now.strftime("%B")
                         dt_string = now.strftime(f"%d {short_date[:3]} %H:%M:%S")
                         # Creating message text and adding it to the channel
-                        message = f'[{dt_string}] {user.name}: {request[1]}'
-                        channels[channel].append(message)
+                        channels[channel].append(f'[{dt_string}] {user.name}: {request[1]}')
 
                         # Sending response to user that message was sent
-                        response = f'MESSAGE SENT\r\n\r\n'
-                        client_f.sendall(response.encode())
+                        client_f.sendall(f'MESSAGE SENT\r\n\r\n'.encode())
 
                     # GET command
-                    if "GETMESS" in data:
+                    if "GET" in data:
                         # Getting amount of messages to send
-                        mess_amount = len(channels[channel])
-                        if mess_amount > 10:
-                            mess_amount = 10
+                        mess_amount = 10 if len(channels[channel]) > 10 else len(channels[channel])
 
                         # Creating response
-                        response = f'{channel} CHAT (LAST {mess_amount} MESSAGES)\r\n'
-
-                        for i in range(mess_amount):
-                            response += f'{channels[channel][i]}\r\n'
-
-                        response += '\r\n'
-                        client_f.sendall(response.encode())
+                        client_f.sendall((f'{channel} CHAT (LAST {mess_amount} MESSAGES)\r\n'.join(f'{channels[channel][(len(channels[channel]) - mess_amount) + i]}\r\n' for i in range(mess_amount)) + '\r\n').encode())
 
                     # QUIT command
                     if "QUIT" in data:
+                        client_f.sendall(f'GOODBYE {user.name}\r\n\r\n'.encode())
                         client_f.close()
                         break
             else:
                 # Sending response to user if channel doesn't exist
-                response = f'THERE IS NO SUCH A CHANNEL\r\n\r\n'
-                client_f.sendall(response.encode())
+                client_f.sendall('THERE IS NO SUCH A CHANNEL\r\n\r\n'.encode())
 
     client_f.close()
 
