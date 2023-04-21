@@ -16,9 +16,9 @@ Extract the files to a directory of your choice.
 Run the executable file.
 
 **Usage:**
-Open the IRC Chat application.
-Use the HELLO command to enter your nickname and then join your first channel with JOIN.
-Start chatting!
+- Open the IRC Chat application.
+- Use the HELLO command to enter your nickname and then join your first channel with JOIN.
+- Start chatting!
 
 **Contributing:**
 If you'd like to contribute to IRC Chat, please submit a pull request on GitHub.
