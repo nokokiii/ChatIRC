@@ -7,7 +7,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     run = True
     while run:
-        command = input("Enter command: ").replace(" ", "") + "\r\n\r\n"
+        command = input("Enter command: ").replace(" ", "").replace("-", " ") + "\r\n\r\n"
         s.sendall(command.encode())
 
         data = read_data(s)

@@ -122,9 +122,10 @@ def user_connect(client_f, addr_f):
                 client_f.sendall('THERE IS NO SUCH A CHANNEL\r\n\r\n'.encode())
 
         else:
-            client_f.sendall('Errror 0: Invalid Command\r\n\r\n'.encode())
+            client_f.sendall('Error 0: Invalid Command\r\n\r\n'.encode())
 
     client_f.close()
+
 
 # Starting server
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
