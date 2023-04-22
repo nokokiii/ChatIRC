@@ -16,10 +16,3 @@ def generate_id(counter):
     generated_id = hex(counter)[2:].zfill(2)
     counter += 1
     return generated_id
-
-
-#
-# # Funkcja do wysyłania wiadomości do wszystkich użytkowników w danym kanale
-# def broadcast(channel, message):
-#     for user in channels[channel]:
-#         user.sendall(message.encode('utf-8'))
