@@ -28,7 +28,8 @@ IRC Chat is licensed under the MIT License.
 - HELP - Shows the list of commands
 - GET - Shows you the last 10 messages of the channel or less 
 - MESS|{Message} - Writes a message
-
+- THEME|{ThemeName} - Selecting themes
+- THEMELIST - Gives you the list of themes
 
 **Error Codes**
 - Error 0: Invalid command

@@ -7,13 +7,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     run = True
     while run:
-        command = input("Enter command: ").replace(" ", "").replace("-", " ") + "\r\n\r\n"
+        command = input(f"Enter command:").replace(" ", "").replace("-", " ") + "\r\n\r\n"
         s.sendall(command.encode())
 
         data = read_data(s)
         data = data.decode()
 
-        print(f'Response from server: {data}')
+        print(f'S: {data}')
 
-        if command == "QUIT\r\n\r\n":
+        if command == f"QUIT\r\n\r\n":
             run = False

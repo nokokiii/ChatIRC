@@ -1,5 +1,5 @@
 ip = 'localhost'
-port = 56990
+port = 5696
 connection = (ip, port)
 
 
