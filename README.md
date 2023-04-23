@@ -24,6 +24,7 @@ IRC Chat is licensed under the MIT License.
 - CREATE|{ChannelName}|{Password}|{MaxUsers} - creates channel
 - JOIN|#{ChannelName} - Joins a channel
 - QUIT - Leaves the program
+- LEAVE - Leaves the channel
 - LIST - Prints out the list of available channels
 - HELP - Shows the list of commands
 - GET - Shows you the last 10 messages of the channel or less 
