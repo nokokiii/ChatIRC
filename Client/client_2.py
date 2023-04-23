@@ -1,5 +1,5 @@
 import socket
-from config import connection, read_data, commands
+from config import connection, read_data
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

@@ -1,6 +1,5 @@
 import socket
-from config import connection, read_data, commands, TextColors
-C = TextColors
+from config import connection, read_data
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -8,13 +7,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     run = True
     while run:
-        command = input(f"{C.magenta}{C.bold}Enter command:{C.end}").replace(" ", "").replace("-", " ") + "\r\n\r\n"
+        command = input(f"Enter command:").replace(" ", "").replace("-", " ") + "\r\n\r\n"
         s.sendall(command.encode())
 
         data = read_data(s)
         data = data.decode()
 
-        print(f'{C.bold}Response from server: {C.end}{C.bold}{data}')
+        print(f'S: {data}')
 
         if command == f"QUIT\r\n\r\n":
             run = False

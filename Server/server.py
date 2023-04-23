@@ -1,8 +1,11 @@
 import socket
 import threading
 from datetime import datetime
-from config import connection, read_data, generate_id, TextColors
-C = TextColors
+from config import connection, read_data, generate_id, \
+    Errors, Themes, commands_help, theme_command, themelist_command
+
+ER = Errors()
+Thm = Themes()
 
 # Dictionary with users
 users = {}
@@ -38,156 +41,172 @@ def user_connect(client_f, addr_f):
 
         # HELLO command {HELLO|<name>}
         if request[0].upper() == "HELLO":
-            user = Users(request[1]) if request[1] else Users()
-            users[user.id] = user
-            response = f'HELLO {user.name}\r\n\r\n'
-            client_f.sendall(response.encode())
+            if len(request) == 2:
+                user = Users(request[1]) if request[1] else Users()
+                users[user.id] = user
+                response = f'{Thm.response}HELLO {user.name}{Thm.end}\r\n\r\n'
+                client_f.sendall(response.encode())
 
-            while True:
-                data = read_data(client_f).decode().strip('\r\n\r\n')
-                request = data.split('|')
+                while True:
+                    data = read_data(client_f).decode().strip('\r\n\r\n')
+                    request = data.split('|')
 
-                # HELLO command {HELLO|<name>}
-                if request[0].upper() == "HELLO":
-                    client_f.sendall('Error: You are already logged in\r\n\r\n'.encode())
+                    # HELLO command {HELLO|<name>}
+                    if request[0].upper() == "HELLO":
+                        client_f.sendall(f'{ER.er_msg("3")}\r\n\r\n'.encode())
 
-                # LIST command {LIST}
-                elif request[0].upper() == "LIST":
-                    # Sending list of channels
-                    # response = 'THE LIST OF CHANNELS\r\n' + ''.join([f'{channel}\r\n' for channel in channels]) + '\r\n'
-                    response = 'THE LIST OF CHANNELS\r\n'
-                    for channel in channels:
-                        privacy = 'Private' if channels[channel].isLocked else 'Public'
-                        response += f'{channel} [{len(channels[channel].users)}/{channels[channel].max_users}] {privacy}\r\n'
+                    elif request[0].upper() == "THEME":
+                        theme_command(Thm, ER, client_f, request)
 
-                    response += '\r\n'
-                    client_f.sendall(response.encode())
+                    elif request[0].upper() == "THEMELIST":
+                        themelist_command(Thm, client_f)
 
-                # CREATE command {CREATE|<channel>|<password>|<max_users>}
-                elif request[0].upper() == "CREATE":
-                    if len(request) < 2:
-                        client_f.sendall('Error: Missing channel name\r\n\r\n'.encode())
-                    else:
-                        channel = request[1]
-                        password = request[2] if len(request) >= 3 else None
-                        max_users = int(request[3]) if len(request) == 4 else 10
-                        # Checking if channel already exists
-                        if channel in channels:
-                            response = f'Error: Channel {channel} already exists\r\n\r\n'
-                        else:
-                            # Creating new channel
-                            new_channel = Channels(channel, password, max_users)
-                            new_channel.create()
-                            response = f'CHANNEL {channel} CREATED\r\n\r\n'
-
+                    elif request[0].upper() == "HELP":
+                        response = f'{Thm.response}{commands_help}{Thm.end}\r\n\r\n'
                         client_f.sendall(response.encode())
 
-                # JOIN command {JOIN|<channel>|<password>}
-                elif request[0].upper() == "JOIN":
-                    channel = request[1]  # Getting channel name
-                    password = request[2] if len(request) == 3 else None  # Getting password
+                    # LIST command {LIST}
+                    elif request[0].upper() == "LIST":
+                        # Sending list of channels
+                        # response = 'THE LIST OF CHANNELS\r\n' + ''.join([f'{channel}\r\n' for channel in channels]) + '\r\n'
+                        response = 'The list of channels\r\n'
+                        for channel in channels:
+                            privacy = 'Private' if channels[channel].isLocked else 'Public'
+                            response += f'{channel} [{len(channels[channel].users)}/{channels[channel].max_users}] {privacy}\r\n'
 
-                    if channel in channels:  # Checking if channel exists
-                        if channels[channel].max_users <= len(channels[channel].users):  # Checking if channel is full
-                            response = f'Error: Channel {channel} is full\r\n\r\n'
-                            client_f.sendall(response.encode())
+                        response += f'{Thm.end}\r\n\r\n'
+                        client_f.sendall(response.encode())
+
+                    # CREATE command {CREATE|<channel_name>|<password>|<max_users>}
+                    elif request[0].upper() == "CREATE":
+                        if len(request) < 2:
+                            client_f.sendall(f'{ER.er_msg("8")}\r\n\r\n'.encode())
                         else:
-                            if not channels[channel].isLocked or channels[channel].password == password:  # Checking if password is correct
-                                # Adding user to channel
-                                channels[channel].users.append(user)
-
-                                # Sending response to user
-                                response = f'CONNECTED TO {channel}\r\n\r\n'
-                                client_f.sendall(response.encode())
-
-                                while True:
-                                    data = read_data(client_f).decode().strip('\r\n\r\n')
-                                    request = data.split('|')
-
-                                    # Sending error if user try to use HELLO command again
-                                    if request[0].upper() == "HELLO":
-                                        client_f.sendall('Error: You are already logged in\r\n\r\n'.encode())
-
-                                    # Sending error if user try to use LIST, JOIN or CREATE command
-                                    elif request[0].upper() == "LIST" or request[0].upper() == "JOIN" or request[0].upper() == "CREATE":
-                                        client_f.sendall('Error: You can not use this command while being connected to channel\r\n\r\n'.encode())
-
-                                    # MESS command {MESS|<message>}
-                                    elif request[0].upper() == "MESS":
-                                        # Getting current date and time
-                                        now = datetime.now()  # current date and time
-                                        short_date = now.strftime("%B")
-                                        dt_string = now.strftime(f"%d {short_date[:3]} %H:%M:%S")
-                                        # Creating message text and adding it to the channel
-                                        channels[channel].chat.append(f'[{dt_string}] {user.name}: {request[1]}')
-
-                                        # Sending response to user that message was sent
-                                        client_f.sendall(f'MESSAGE SENT\r\n\r\n'.encode())
-
-                                    # GET command {GET}
-                                    elif request[0].upper() == "GET":
-                                        # Getting amount of messages to send
-                                        mess_amount = 10 if len(channels[channel].chat) > 10 else len(channels[channel].chat)
-
-                                        # Creating response <3 <3 lovki for this line <3 <3
-                                        client_f.sendall((f'{channel} CHAT (LAST {mess_amount} MESSAGES)\r\n' + ''.join(f'{channels[channel].chat[(len(channels[channel].chat) - mess_amount) + i]}\r\n' for i in range(mess_amount)) + '\r\n').encode())
-
-                                    # HELP command {HELP}
-                                    elif request[0].upper() == "HELP":
-                                        response = "COMMANDS: \r\n" \
-                                                   "HELLO - to connect to the server\r\n" \
-                                                   "LIST - to get list of channels\r\n" \
-                                                   "CREATE - to create new channel\r\n" \
-                                                   "JOIN - to join channel\r\n" \
-                                                   "QUIT - to disconnect from the server\r\n\r\n"
-                                        client_f.sendall(response.encode())
-
-                                    # QUIT command {QUIT}
-                                    elif request[0].upper() == "QUIT":
-                                        client_f.sendall(f'{C.red}GOODBYE {user.name}\r\n\r\n{C.end}'.encode())
-                                        client_f.close()
-                                        break
-
-                                    # Invalid command
-                                    else:
-                                        client_f.sendall('Error: Invalid Command\r\n\r\n'.encode())
+                            channel = request[1]
+                            password = request[2] if len(request) >= 3 else None
+                            max_users = int(request[3]) if len(request) == 4 else 10
+                            # Checking if channel already exists
+                            if f'#{channel}' in channels:
+                                response = f'{ER.er_msg("9")}\r\n\r\n'
                             else:
-                                # Sending response to user if password is incorrect
-                                client_f.sendall('Error: Password is incorrect\r\n\r\n'.encode())
+                                # Creating new channel
+                                new_channel = Channels(channel, password, max_users)
+                                new_channel.create()
+                                response = f'{Thm.response}Channel {channel} created{Thm.end}\r\n\r\n'
+
+                            client_f.sendall(response.encode())
+
+                    # JOIN command {JOIN|<channel>|<password>}
+                    elif request[0].upper() == "JOIN":
+                        channel = request[1]  # Getting channel name
+                        password = request[2] if len(request) == 3 else None  # Getting password
+
+                        if channel in channels:  # Checking if channel exists
+                            if channels[channel].max_users <= len(channels[channel].users):  # Checking if channel is full
+                                response = ER.er_msg('10')
+                                client_f.sendall(f'{response}\r\n\r\n'.encode())
+                            else:
+                                if not channels[channel].isLocked or channels[channel].password == password:  # Checking if password is correct
+                                    # Adding user to channel
+                                    channels[channel].users.append(user)
+
+                                    # Sending response to user
+                                    response = f'{Thm.response}Succesfully connected to {channel}{Thm.end}\r\n\r\n'
+                                    client_f.sendall(response.encode())
+
+                                    while True:
+                                        data = read_data(client_f).decode().strip('\r\n\r\n')
+                                        request = data.split('|')
+
+                                        # Sending error if user try to use HELLO command again
+                                        if request[0].upper() == "HELLO":
+                                            client_f.sendall(f'{ER.er_msg("3")}\r\n\r\n'.encode())
+
+                                        # THEME command {THEME|<theme>}
+                                        elif request[0].upper() == "THEME":
+                                            theme_command(Thm, ER, client_f, request)
+
+                                        # THEMELIST command {THEMELIST}
+                                        elif request[0].upper() == "THEMELIST":
+                                            themelist_command(Thm, client_f)
+
+                                        # Sending error if user try to use LIST, JOIN or CREATE command
+                                        elif request[0].upper() == "LIST" or request[0].upper() == "JOIN" or request[0].upper() == "CREATE":
+                                            client_f.sendall(f'{ER.er_msg("11")}\r\n\r\n'.encode())
+
+                                        # MESS command {MESS|<message>}
+                                        elif request[0].upper() == "MESS":
+                                            # Getting current date and time
+                                            now = datetime.now()  # current date and time
+                                            short_date = now.strftime("%B")
+                                            dt_string = now.strftime(f"%d {short_date[:3]} %H:%M:%S")
+                                            # Creating message text and adding it to the channel
+                                            channels[channel].chat.append(f'[{dt_string}] {user.name}: {request[1]}')
+
+                                            # Sending response to user that message was sent
+                                            client_f.sendall(f'{Thm.response}Message sent{Thm.end}\r\n\r\n'.encode())
+
+                                        # GET command {GET}
+                                        elif request[0].upper() == "GET":
+                                            # Getting amount of messages to send
+                                            mess_amount = 10 if len(channels[channel].chat) > 10 else len(channels[channel].chat)
+
+                                            # Creating response <3 <3 lovki for this line <3 <3
+                                            client_f.sendall((f'{channel} chat (last {mess_amount} messages)\r\n' + ''.join(f'{channels[channel].chat[(len(channels[channel].chat) - mess_amount) + i]}\r\n' for i in range(mess_amount)) + '\r\n').encode())
+
+                                        # HELP command {HELP}
+                                        elif request[0].upper() == "HELP":
+                                            client_f.sendall(f'{Thm.response}{commands_help}{Thm.end}\r\n\r\n'.encode())
+
+                                        # QUIT command {QUIT}
+                                        elif request[0].upper() == "QUIT":
+                                            client_f.sendall(f'{Thm.response}Goodbye!!{Thm.end}\r\n\r\n'.encode())
+                                            client_f.close()
+                                            break
+
+                                        # Invalid command
+                                        else:
+                                            client_f.sendall(f'{ER.er_msg("0")}\r\n\r\n'.encode())
+                                else:
+                                    # Sending response to user if password is incorrect
+                                    client_f.sendall(f'{ER.er_msg("7")}\r\n\r\n'.encode())
+                        else:
+                            # Sending response to user if channel doesn't exist
+                            client_f.sendall(f'{ER.er_msg("6")}\r\n\r\n'.encode())
+
+                    # Sending error if user try to use GET or MESS command while not being connected to channel
+                    elif request[0].upper() in ["GET", "MESS"]:
+                        client_f.sendall(f'{ER.er_msg("4")}\r\n\r\n'.encode())
+
+                    # Invalid command
                     else:
-                        # Sending response to user if channel doesn't exist
-                        client_f.sendall('Error: There is no such a channel\r\n\r\n'.encode())
-
-                # Sending error if user try to use GET or MESS command while not being connected to channel
-                elif request[0].upper() in ["GET", "MESS"]:
-                    client_f.sendall('Error: You have to join channel to use this command\r\n\r\n'.encode())
-
-                # Invalid command
-                else:
-                    client_f.sendall(f'{C.red}Error: Invalid Command{C.end}\r\n\r\n'.encode())
+                        client_f.sendall(f'{ER.er_msg("0")}\r\n\r\n'.encode())
+            else:
+                # Sending error if user doesn't provide username
+                client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
 
         # HELP command
         elif request[0].upper() == "HELP":
-            response = "COMMANDS: \r\n" \
-                       "HELLO - to connect to the server\r\n" \
-                       "LIST - to get list of channels\r\n" \
-                       "CREATE - to create new channel\r\n" \
-                       "JOIN - to join channel\r\n" \
-                       "QUIT - to disconnect from the server\r\n\r\n"
-            client_f.sendall(response.encode())
+            client_f.sendall(f'{Thm.response}{commands_help}{Thm.end}\r\n\r\n'.encode())
+            
+        elif request[0].upper() == "THEMELIST":
+            themelist_command(Thm, client_f)
+
+        elif request[0].upper() == "THEME":
+            theme_command(Thm, ER, client_f, request)
 
         # QUIT command
         elif request[0].upper() == "QUIT":
-            client_f.sendall(f'{C.red}GOODBYE{C.end}\r\n\r\n'.encode())
+            client_f.sendall(f'{Thm.response}Goodbye\r\n\r\n{Thm.end}'.encode())
             client_f.close()
             break
 
         # Check if other commands have been used
         elif request[0].upper() in ["LIST", "JOIN", "GET", "CREATE", "MESS"]:
-            client_f.sendall('Error: You can use other commands after your log in\r\n\r\n'.encode())
+            client_f.sendall(f'{ER.er_msg("2")}\r\n\r\n'.encode())
 
         else:
-            client_f.sendall('Error: Invalid Command\r\n\r\n'.encode())
+            client_f.sendall(f'{ER.er_msg("0")}\r\n\r\n'.encode())
 
     client_f.close()
 

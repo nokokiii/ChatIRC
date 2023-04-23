@@ -30,3 +30,25 @@ IRC Chat is licensed under the MIT License.
 - MESS|{Message} - Writes a message
 
 
+**Error Codes**
+- Error 0: Invalid command
+- Error 1: Invalid arguments
+- Error 2: You have to be logged to use this command
+- Error 3: You are already logged in
+- Error 4: You have to be in chat to use this command
+- Error 5: You are already in chat
+- Error 6: No such chat
+- Error 7: Password is incorrect
+- Error 8: The channel name is invalid
+- Error 9: The channel already exists
+- Error 10: The channel is full
+- Error 12: There is no such a theme
+
+**Libraries used:**
+- threading
+- socket
+-  datetime
+
+**Authors:**
+- Nokokiii 
+- Mundek
