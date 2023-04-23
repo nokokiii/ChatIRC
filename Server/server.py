@@ -1,7 +1,8 @@
 import socket
 import threading
 from datetime import datetime
-from config import connection, read_data, generate_id
+from config import connection, read_data, generate_id, TextColors
+C = TextColors
 
 # Dictionary with users
 users = {}
@@ -143,7 +144,7 @@ def user_connect(client_f, addr_f):
 
                                     # QUIT command {QUIT}
                                     elif request[0].upper() == "QUIT":
-                                        client_f.sendall(f'GOODBYE {user.name}\r\n\r\n'.encode())
+                                        client_f.sendall(f'{C.red}GOODBYE {user.name}\r\n\r\n{C.end}'.encode())
                                         client_f.close()
                                         break
 
@@ -163,7 +164,7 @@ def user_connect(client_f, addr_f):
 
                 # Invalid command
                 else:
-                    client_f.sendall('Error: Invalid Command\r\n\r\n'.encode())
+                    client_f.sendall(f'{C.red}Error: Invalid Command{C.end}\r\n\r\n'.encode())
 
         # HELP command
         elif request[0].upper() == "HELP":
@@ -177,7 +178,7 @@ def user_connect(client_f, addr_f):
 
         # QUIT command
         elif request[0].upper() == "QUIT":
-            client_f.sendall(f'GOODBYE\r\n\r\n'.encode())
+            client_f.sendall(f'{C.red}GOODBYE{C.end}\r\n\r\n'.encode())
             client_f.close()
             break
 
