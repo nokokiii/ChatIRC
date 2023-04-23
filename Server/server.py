@@ -72,15 +72,15 @@ def user_connect(client_f, addr_f):
 
                     # LIST command {LIST}
                     elif request[0].upper() == "LIST":
-                        # Sending list of channels
-                        # response = 'THE LIST OF CHANNELS\r\n' + ''.join([f'{channel}\r\n' for channel in channels]) + '\r\n'
-                        response = 'The list of channels\r\n'
-                        for channel in channels:
-                            privacy = 'Private' if channels[channel].isLocked else 'Public'
-                            response += f'{channel} [{len(channels[channel].users)}/{channels[channel].max_users}] {privacy}\r\n'
-
-                        response += f'{Thm.end}\r\n\r\n'
-                        client_f.sendall(response.encode())
+                        if len(request) == 1:
+                            response = 'The list of channels\r\n'
+                            for channel in channels:
+                                privacy = 'Private' if channels[channel].isLocked else 'Public'
+                                response += f'{channel} [{len(channels[channel].users)}/{channels[channel].max_users}] {privacy}\r\n'
+                            response += f'{Thm.end}\r\n\r\n'
+                            client_f.sendall(response.encode())
+                        else:
+                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
 
                     # CREATE command {CREATE|<channel_name>|<password>|<max_users>}
                     elif request[0].upper() == "CREATE":
