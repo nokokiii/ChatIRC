@@ -18,7 +18,7 @@ class Channels:
     def __init__(self, name, password, max_users):
         self.name = name if name.startswith('#') else f'#{name}'
         self.password = password
-        self.isLocked = True if password else False
+        self.isLocked = bool(password)
         self.max_users = max_users
         self.users = []
         self.chat = []

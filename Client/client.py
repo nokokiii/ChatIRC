@@ -8,7 +8,10 @@ try:
         run = True
         while run:
             try:
-                command = input(f"Enter command:").replace(" ", "").replace("-", " ") + "\r\n\r\n"
+                command = (
+                    input("Enter command:").replace(" ", "").replace("-", " ")
+                    + "\r\n\r\n"
+                )
                 s.sendall(command.encode())
 
                 data = read_data(s)

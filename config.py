@@ -19,10 +19,7 @@ def themelist_command(Thm, client_f):
     themes, current_theme = Thm.themes()
     resposne = f'{Thm.response} List of themes: \r\n'
     for i in themes:
-        if i == current_theme:
-            resposne += f'>{Thm.bold} {i}\r\n'
-        else:
-            resposne += f'{i}\r\n'
+        resposne += f'>{Thm.bold} {i}\r\n' if i == current_theme else f'{i}\r\n'
     resposne += f'{Thm.end}\r\n\r\n'
     client_f.sendall(resposne.encode())
 
@@ -52,103 +49,94 @@ def join_command(client_f, request, user, channels, ER, Thm, datetime):
         if channels[channel].max_users <= len(channels[channel].users):  # Checking if channel is full
             response = ER.er_msg('10')
             client_f.sendall(f'{response}\r\n\r\n'.encode())
-        else:
-            if not channels[channel].isLocked or channels[channel].password == password:  # Checking if password is correct
-                # Adding user to channel
-                channels[channel].users.append(user)
+        elif not channels[channel].isLocked or channels[channel].password == password:  # Checking if password is correct
+            # Adding user to channel
+            channels[channel].users.append(user)
 
-                # Sending response to user
-                response = f'{Thm.response}Succesfully connected to {channel}{Thm.end}\r\n\r\n'
-                client_f.sendall(response.encode())
+            # Sending response to user
+            response = f'{Thm.response}Succesfully connected to {channel}{Thm.end}\r\n\r\n'
+            client_f.sendall(response.encode())
 
-                while True:
-                    data = read_data(client_f).decode().strip('\r\n\r\n')
-                    request = data.split('|')
+            while True:
+                data = read_data(client_f).decode().strip('\r\n\r\n')
+                request = data.split('|')
 
                     # Sending error if user try to use HELLO command again
-                    if request[0].upper() == "HELLO":
-                        client_f.sendall(f'{ER.er_msg("3")}\r\n\r\n'.encode())
+                if request[0].upper() == "HELLO":
+                    client_f.sendall(f'{ER.er_msg("3")}\r\n\r\n'.encode())
 
-                    # THEME command {THEME|<theme>}
-                    elif request[0].upper() == "THEME":
-                        if len(request) == 1 or len(request) > 2:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
-                        elif len(request) == 2:
-                            theme_command(Thm, ER, client_f, request)
+                elif request[0].upper() == "THEME":
+                    if len(request) == 1 or len(request) > 2:
+                        client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                    elif len(request) == 2:
+                        theme_command(Thm, ER, client_f, request)
 
-                    # THEMELIST command {THEMELIST}
-                    elif request[0].upper() == "THEMELIST":
-                        if len(request) == 1:
-                            themelist_command(Thm, client_f)
-                        else:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
-
-                    elif request[0].upper() == "LEAVE":
-                        if len(request) == 1:
-                            # Removing user from channel
-                            channels[channel].users.remove(user)
-
-                            # Sending response to user
-                            response = f'{Thm.response}Succesfully disconnected from {channel}{Thm.end}\r\n\r\n'
-                            client_f.sendall(response.encode())
-                            return
-                        else:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
-
-                    # Sending error if user try to use LIST, JOIN or CREATE command
-                    elif request[0].upper() == "LIST" or request[0].upper() == "JOIN" or request[0].upper() == "CREATE":
-                        client_f.sendall(f'{ER.er_msg("11")}\r\n\r\n'.encode())
-
-                    # MESS command {MESS|<message>}
-                    elif request[0].upper() == "MESS":
-                        if len(request) == 1 or request[1] == "" or len(request) > 2:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
-                        else:
-                            # Getting current date and time
-                            now = datetime.now()  # current date and time
-                            short_date = now.strftime("%B")
-                            dt_string = now.strftime(f"%d {short_date[:3]} %H:%M:%S")
-                            # Creating message text and adding it to the channel
-                            channels[channel].chat.append(f'[{dt_string}] {user.name}: {request[1]}')
-
-                            # Sending response to user that message was sent
-                            client_f.sendall(f'{Thm.response}Message sent{Thm.end}\r\n\r\n'.encode())
-
-                    # GET command {GET}
-                    elif request[0].upper() == "GET":
-                        if len(request) == 1:
-                            # Getting amount of messages to send
-                            mess_amount = 10 if len(channels[channel].chat) > 10 else len(channels[channel].chat)
-
-                            # Creating response <3 <3 lovki for this line <3 <3
-                            client_f.sendall((f'{channel} chat (last {mess_amount} messages)\r\n' + ''.join(
-                                f'{channels[channel].chat[(len(channels[channel].chat) - mess_amount) + i]}\r\n' for i in
-                                range(mess_amount)) + '\r\n').encode())
-                        else:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
-
-                    # HELP command {HELP}
-                    elif request[0].upper() == "HELP":
-                        if len(request) == 1:
-                            client_f.sendall(f'{Thm.response}{commands_help}{Thm.end}\r\n\r\n'.encode())
-                        else:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
-
-                    # QUIT command {QUIT}
-                    elif request[0].upper() == "QUIT":
-                        if len(request) == 1:
-                            client_f.sendall(f'{Thm.response}Goodbye!!{Thm.end}\r\n\r\n'.encode())
-                            client_f.close()
-                            break
-                        else:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
-
-                    # Invalid command
+                elif request[0].upper() == "THEMELIST":
+                    if len(request) == 1:
+                        themelist_command(Thm, client_f)
                     else:
-                        client_f.sendall(f'{ER.er_msg("0")}\r\n\r\n'.encode())
-            else:
-                # Sending response to user if password is incorrect
-                client_f.sendall(f'{ER.er_msg("7")}\r\n\r\n'.encode())
+                        client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+
+                elif request[0].upper() == "LEAVE":
+                    if len(request) == 1:
+                        # Removing user from channel
+                        channels[channel].users.remove(user)
+
+                        # Sending response to user
+                        response = f'{Thm.response}Succesfully disconnected from {channel}{Thm.end}\r\n\r\n'
+                        client_f.sendall(response.encode())
+                        return
+                    else:
+                        client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+
+                elif request[0].upper() in ["LIST", "JOIN", "CREATE"]:
+                    client_f.sendall(f'{ER.er_msg("11")}\r\n\r\n'.encode())
+
+                elif request[0].upper() == "MESS":
+                    if len(request) == 1 or request[1] == "" or len(request) > 2:
+                        client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                    else:
+                        # Getting current date and time
+                        now = datetime.now()  # current date and time
+                        short_date = now.strftime("%B")
+                        dt_string = now.strftime(f"%d {short_date[:3]} %H:%M:%S")
+                        # Creating message text and adding it to the channel
+                        channels[channel].chat.append(f'[{dt_string}] {user.name}: {request[1]}')
+
+                        # Sending response to user that message was sent
+                        client_f.sendall(f'{Thm.response}Message sent{Thm.end}\r\n\r\n'.encode())
+
+                elif request[0].upper() == "GET":
+                    if len(request) == 1:
+                            # Getting amount of messages to send
+                        mess_amount = min(len(channels[channel].chat), 10)
+
+                        # Creating response <3 <3 lovki for this line <3 <3
+                        client_f.sendall((f'{channel} chat (last {mess_amount} messages)\r\n' + ''.join(
+                            f'{channels[channel].chat[(len(channels[channel].chat) - mess_amount) + i]}\r\n' for i in
+                            range(mess_amount)) + '\r\n').encode())
+                    else:
+                        client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+
+                elif request[0].upper() == "HELP":
+                    if len(request) == 1:
+                        client_f.sendall(f'{Thm.response}{commands_help}{Thm.end}\r\n\r\n'.encode())
+                    else:
+                        client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+
+                elif request[0].upper() == "QUIT":
+                    if len(request) == 1:
+                        client_f.sendall(f'{Thm.response}Goodbye!!{Thm.end}\r\n\r\n'.encode())
+                        client_f.close()
+                        break
+                    else:
+                        client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+
+                else:
+                    client_f.sendall(f'{ER.er_msg("0")}\r\n\r\n'.encode())
+        else:
+            # Sending response to user if password is incorrect
+            client_f.sendall(f'{ER.er_msg("7")}\r\n\r\n'.encode())
     else:
         # Sending response to user if channel doesn't exist
         client_f.sendall(f'{ER.er_msg("6")}\r\n\r\n'.encode())
