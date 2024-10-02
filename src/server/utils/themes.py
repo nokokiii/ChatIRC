@@ -18,6 +18,12 @@ class Themes:
             'green': {'input': '\u001b[32m', 'response': '\u001b[32;1m'}
         }
 
+    def style(self, text: str, message_type) -> str:
+        """
+        Returns the styled text
+        """
+        return f"{self.styles[message_type]}{text}{self.styles['end']}"
+
     def change_theme(self, theme: str) -> None:
         """
         Changes the theme of the console
