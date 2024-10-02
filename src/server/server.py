@@ -1,18 +1,19 @@
 import socket
 import threading
 from datetime import datetime
+
 from config import connection, read_data, generate_id, \
     Errors, Themes, commands_help, theme_command, themelist_command, join_command
+from src.server.utils.themes import Themes
 
-ER = Errors()
-Thm = Themes()
+ERRORS = Errors()
+THEME = Themes()
 
 # Dictionary with users
 users = {}
 
 #  Dictionary with channels and their data
 channels = {}
-
 
 class Channels:
     def __init__(self, name, password, max_users):
@@ -44,7 +45,7 @@ def user_connect(client_f, addr_f):
             if len(request) == 2:
                 user = Users(request[1]) if request[1] else Users()
                 users[user.id] = user
-                response = f'{Thm.response}HELLO {user.name}{Thm.end}\r\n\r\n'
+                response = f'{THEME.response}HELLO {user.name}{THEME.end}\r\n\r\n'
                 client_f.sendall(response.encode())
 
                 while True:
@@ -53,22 +54,22 @@ def user_connect(client_f, addr_f):
 
                     # HELLO command {HELLO|<name>}
                     if request[0].upper() == "HELLO":
-                        client_f.sendall(f'{ER.er_msg("3")}\r\n\r\n'.encode())
+                        client_f.sendall(f'{ERRORS.er_msg("3")}\r\n\r\n'.encode())
 
                     elif request[0].upper() == "THEME":
-                        theme_command(Thm, ER, client_f, request)
+                        theme_command(THEME, ERRORS, client_f, request)
 
                     elif request[0].upper() == "THEMELIST":
                         if len(request) == 1:
-                            themelist_command(Thm, client_f)
+                            themelist_command(THEME, client_f)
                         else:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                            client_f.sendall(f'{ERRORS.er_msg("1")}\r\n\r\n'.encode())
 
                     elif request[0].upper() == "HELP":
                         if len(request) == 1:
-                            client_f.sendall(f'{Thm.response}{commands_help}{Thm.end}\r\n\r\n'.encode())
+                            client_f.sendall(f'{THEME.response}{commands_help}{THEME.end}\r\n\r\n'.encode())
                         else:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                            client_f.sendall(f'{ERRORS.er_msg("1")}\r\n\r\n'.encode())
 
                     # LIST command {LIST}
                     elif request[0].upper() == "LIST":
@@ -77,76 +78,76 @@ def user_connect(client_f, addr_f):
                             for channel in channels:
                                 privacy = 'Private' if channels[channel].isLocked else 'Public'
                                 response += f'{channel} [{len(channels[channel].users)}/{channels[channel].max_users}] {privacy}\r\n'
-                            response += f'{Thm.end}\r\n\r\n'
+                            response += f'{THEME.end}\r\n\r\n'
                             client_f.sendall(response.encode())
                         else:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                            client_f.sendall(f'{ERRORS.er_msg("1")}\r\n\r\n'.encode())
 
                     # CREATE command {CREATE|<channel_name>|<password>|<max_users>}
                     elif request[0].upper() == "CREATE":
                         if len(request) == 1 or len(request) > 4 or request[1] == "" or len(request) == 4 and not request[3].isdigit() or len(request) == 3 and request[2] == "" or len(request) == 4 and request[3].isdigit() or len(request) == 3 and request[2] != 0:
-                            client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                            client_f.sendall(f'{ERRORS.er_msg("1")}\r\n\r\n'.encode())
                         else:
                             channel = str(request[1]).replace(" ", "")
                             password = str(request[2]) if len(request) >= 3 else None
                             max_users = int(request[3]) if len(request) == 4 else 10
                             # Checking if channel already exists
                             if f'#{channel}' in channels:
-                                response = f'{ER.er_msg("9")}\r\n\r\n'
+                                response = f'{ERRORS.er_msg("9")}\r\n\r\n'
                             else:
                                 # Creating new channel
                                 new_channel = Channels(channel, password, max_users)
                                 new_channel.create()
-                                response = f'{Thm.response}Channel {channel} created{Thm.end}\r\n\r\n'
+                                response = f'{THEME.response}Channel {channel} created{THEME.end}\r\n\r\n'
 
                             client_f.sendall(response.encode())
 
                     # JOIN command {JOIN|<channel>|<password>}
                     elif request[0].upper() == "JOIN":
-                        join_command(client_f, request, user, channels, ER, Thm, datetime)
+                        join_command(client_f, request, user, channels, ERRORS, THEME, datetime)
 
                     # Sending error if user try to use GET or MESS command while not being connected to channel
                     elif request[0].upper() in ["GET", "MESS", "LEAVE"]:
-                        client_f.sendall(f'{ER.er_msg("4")}\r\n\r\n'.encode())
+                        client_f.sendall(f'{ERRORS.er_msg("4")}\r\n\r\n'.encode())
 
                     # Invalid command
                     else:
-                        client_f.sendall(f'{ER.er_msg("0")}\r\n\r\n'.encode())
+                        client_f.sendall(f'{ERRORS.er_msg("0")}\r\n\r\n'.encode())
             else:
                 # Sending error if user doesn't provide username
-                client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                client_f.sendall(f'{ERRORS.er_msg("1")}\r\n\r\n'.encode())
 
         # HELP command
         elif request[0].upper() == "HELP":
             if len(request) == 1:
-                client_f.sendall(f'{Thm.response}{commands_help}{Thm.end}\r\n\r\n'.encode())
+                client_f.sendall(f'{THEME.response}{commands_help}{THEME.end}\r\n\r\n'.encode())
             else:
-                client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                client_f.sendall(f'{ERRORS.er_msg("1")}\r\n\r\n'.encode())
 
         elif request[0].upper() == "THEMELIST":
             if len(request) == 1:
-                themelist_command(Thm, client_f)
+                themelist_command(THEME, client_f)
             else:
-                client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                client_f.sendall(f'{ERRORS.er_msg("1")}\r\n\r\n'.encode())
 
         elif request[0].upper() == "THEME":
-            theme_command(Thm, ER, client_f, request)
+            theme_command(THEME, ERRORS, client_f, request)
 
         # QUIT command
         elif request[0].upper() == "QUIT":
             if len(request) == 1:
-                client_f.sendall(f'{Thm.response}Goodbye\r\n\r\n{Thm.end}'.encode())
+                client_f.sendall(f'{THEME.response}Goodbye\r\n\r\n{THEME.end}'.encode())
                 client_f.close()
                 break
             else:
-                client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
+                client_f.sendall(f'{ERRORS.er_msg("1")}\r\n\r\n'.encode())
 
         # Check if other commands have been used
         elif request[0].upper() in ["LIST", "JOIN", "GET", "CREATE", "MESS", "LEAVE"]:
-            client_f.sendall(f'{ER.er_msg("2")}\r\n\r\n'.encode())
+            client_f.sendall(f'{ERRORS.er_msg("2")}\r\n\r\n'.encode())
 
         else:
-            client_f.sendall(f'{ER.er_msg("0")}\r\n\r\n'.encode())
+            client_f.sendall(f'{ERRORS.er_msg("0")}\r\n\r\n'.encode())
 
     client_f.close()
 

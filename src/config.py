@@ -1,6 +1,7 @@
-ip = 'localhost'
-port = 53496
-connection = (ip, port)
+IP = 'localhost'
+PORT = 53496
+
+connection = (IP, PORT)
 
 
 # Server commands functions
@@ -177,50 +178,6 @@ class Errors:
 
     def er_msg(self, error):
         return f"{self.bold}{self.red}{self.messages[error]}{self.end}"
-
-
-class Themes:
-    def __init__(self):
-        self.theme = 'default'
-        self.input = '\u001b[37m'
-        self.bold = '\u001b[1m'
-        self.response = '\u001b[37;1m'
-        self.end = '\u001b[0m'
-        self.error = '\u001b[31m'
-        self.underline = '\u001b[4m'
-
-    def change_theme(self, t):
-        if t == 'pink':
-            self.pink_theme()
-        elif t == 'blue':
-            self.blue_theme()
-        elif t == 'green':
-            self.green_theme()
-        elif t == 'default':
-            self.default_theme()
-
-    def themes(self):
-        return ['default', 'pink', 'blue', 'green'], self.theme
-
-    def pink_theme(self):
-        self.theme = 'pink'
-        self.input = '\u001b[35m'
-        self.response = '\u001b[35;1m'
-
-    def blue_theme(self):
-        self.theme = 'blue'
-        self.input = '\u001b[34m'
-        self.response = '\u001b[34;1m'
-
-    def green_theme(self):
-        self.theme = 'green'
-        self.input = '\u001b[32m'
-        self.response = '\u001b[32;1m'
-
-    def default_theme(self):
-        self.theme = 'default'
-        self.input = '\u001b[37m'
-        self.response = '\u001b[37;1m'
 
 
 commands_help = "List of commands: \r\n" \
