@@ -4,30 +4,6 @@ PORT = 53496
 connection = (IP, PORT)
 protocol = '\r\n\r\n'
 
-# Server commands functions
-def theme_command(Thm, ER, client_f, request):
-    if len(request) == 2:
-        if request[1].lower() in Thm.themes()[0]:
-            Thm.change_theme(request[1].lower())
-            client_f.sendall(f'{Thm.response}Theme changed to {Thm.theme}{Thm.end}\r\n\r\n'.encode())
-        else:
-            client_f.sendall(f'{ER.er_msg("12")}\r\n\r\n'.encode())
-    else:
-        client_f.sendall(f'{ER.er_msg("1")}\r\n\r\n'.encode())
-
-
-def themelist_command(Thm, client_f):
-    themes, current_theme = Thm.themes()
-    resposne = f'{Thm.response} List of themes: \r\n'
-    for i in themes:
-        if i == current_theme:
-            resposne += f'>{Thm.bold} {i}\r\n'
-        else:
-            resposne += f'{i}\r\n'
-    resposne += f'{Thm.end}\r\n\r\n'
-    client_f.sendall(resposne.encode())
-
-
 def read_data(socket):
     data = b''
     while b'\r\n\r\n' not in data:

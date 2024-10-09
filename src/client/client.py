@@ -1,5 +1,5 @@
 from socket import socket, AF_INET, SOCK_STREAM
-from config import connection, read_data
+from src.config import connection, read_data
 
 
 def client(sock: socket) -> None:
