@@ -1,13 +1,37 @@
-from typing import Optional
+from typing import Optional, List
 
 class Channel:
     def __init__(self, name: str, max_users: int, password: Optional[str] = None) -> None:
         self.name = name
         self.password = password
         self.max_users = max_users if max_users and max_users > 0 else 10
-        self.isLocked = bool(password)
+        self.is_locked = bool(password)
         self.users = []
         self.chat = []
+
+    def is_max_users(self) -> bool:
+        """
+        Check if channel is full
+        """
+        return self.max_users <= len(self.users)
+    
+    def password_validation(self, password: str) -> bool:
+        """
+        Validate password
+        """
+        return self.password == password
+    
+    def add_user(self, user) -> None:
+        """
+        Add user to channel
+        """
+        self.users.append(user)
+
+    def remove_user(self, user) -> None:
+        """
+        Remove user from channel
+        """
+        self.users.remove(user)
 
 
 class Channels:
@@ -44,3 +68,10 @@ class Channels:
         Get channel by name
         """
         return self.channels[name]
+    
+    def get_channels(self) -> List[str]:
+        """
+        Get list of channels
+        """
+        return list(self.channels.keys())
+    
