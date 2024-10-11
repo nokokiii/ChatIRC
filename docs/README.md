@@ -1,6 +1,6 @@
 # Chat IRC
 
-*Last update 17.09.2024*
+*Last update 11.10.2024*
 
 I created this project 2 years ago as my semester project in 1st grade. But some time ago I checked it and it was horible and I decided to refactor it and update it to the point I'll be again proud of it. Right now I'm in the middle of this process and I'm going to update this README as soon as I finish it.
 
