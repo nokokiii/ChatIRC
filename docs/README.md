@@ -1,56 +1,24 @@
-# Application Name: IRC Chat
+# Chat IRC
 
-**Description:**
-IRC (Internet Relay Chat) is an internet protocol that enables real-time communication. IRC Chat is an application that allows users to connect to IRC servers and participate in chat rooms.
+*Last update 17.09.2024*
 
-**Features:**
-- Join and participate in multiple chat rooms
-- Create your own private chat rooms
-- Customize your client preferences, such 4 different themes
+I created this project 2 years ago as my semester project in 1st grade. But some time ago I checked it and it was horible and I decided to refactor it and update it to the point I'll be again proud of it. Right now I'm in the middle of this process and I'm going to update this README as soon as I finish it.
 
-**Usage:**
-- Open the IRC Chat application.
-- Use the HELLO command to enter your nickname and then join your first channel with JOIN.
-- Start chatting!
+## 🗒️ Documentation
 
-**Contributing:**
-If you'd like to contribute to IRC Chat, please submit a pull request on GitHub.
+You can find documentation and instalation proccess in the `docs` directory.
 
-**License:**
-IRC Chat is licensed under the MIT License.
+- [Client Docs](docs/CLIENT.md)
+- [Server Docs](docs/SERVER.md)
 
- **Command scheme and list:**
-- HELLO|{NickName} - should be your first command
-- CREATE|{ChannelName}|{Password}|{MaxUsers} - creates channel
-- JOIN|#{ChannelName} - Joins a channel
-- QUIT - Leaves the program
-- LEAVE - Leaves the channel
-- LIST - Prints out the list of available channels
-- HELP - Shows the list of commands
-- GET - Shows you the last 10 messages of the channel or less 
-- MESS|{Message} - Writes a message
-- THEME|{ThemeName} - Selecting themes
-- THEMELIST - Gives you the list of themes
+## 🚀 Future plans
 
-**Error Codes**
-- Error 0: Invalid command
-- Error 1: Invalid arguments
-- Error 2: You have to be logged to use this command
-- Error 3: You are already logged in
-- Error 4: You have to be in chat to use this command
-- Error 5: You are already in chat
-- Error 6: No such chat
-- Error 7: Password is incorrect
-- Error 8: The channel name is invalid
-- Error 9: The channel already exists
-- Error 10: The channel is full
-- Error 12: There is no such a theme
+- [ ] Refactor the code **(in progress)**
+- [ ] Add database for server to store users and chats
+- [ ] Add some kind of encryption for messages
+- [ ] Create tests
 
-**Libraries used:**
-- threading
-- socket
--  datetime
+## 👷 Created by
 
-**Authors:**
-- Nokokiii 
-- Mundek
+- [nokokiii](https://github.com/nokokiii)
+- [mundek](https://github.com/kubat1611)
